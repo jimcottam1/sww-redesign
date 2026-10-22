@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   basePath,
   trailingSlash: true,
   images: { unoptimized: true },
+  // One render worker shares the fetch cache and keeps requests to the club's WordPress host gentle.
+  experimental: { cpus: 1 },
 };
 
 export default nextConfig;

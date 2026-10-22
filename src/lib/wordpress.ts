@@ -58,23 +58,25 @@ function toPost(p: RawPost): Post {
   };
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function wpFetch(path: string) {
-  // The live club site is the CMS; refresh every 5 minutes.
-  const res = await fetch(`${WP_URL}/wp-json/wp/v2/${path}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (SWW headless frontend)" },
-    next: { revalidate: 300 },
-  });
-  if (!res.ok) throw new Error(`WordPress request failed: ${res.status} ${path}`);
-  return res;
+  // The club's host throttles bursts of requests, so retry busy/rate-limited responses with backoff.
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${WP_URL}/wp-json/wp/v2/${path}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (SWW headless frontend)" },
+      next: { revalidate: 300 },
+    });
+    if (res.ok) return res;
+    if (attempt < 5 && (res.status === 429 || res.status >= 500)) {
+      await sleep(2000 * 2 ** attempt);
+      continue;
+    }
+    throw new Error(`WordPress request failed: ${res.status} ${path}`);
+  }
 }
 
 const wp = async <T,>(path: string): Promise<T> => (await wpFetch(path)).json();
-
-export async function getPosts(perPage = 9, page = 1) {
-  const res = await wpFetch(`posts?per_page=${perPage}&page=${page}&_embed=wp:featuredmedia&_fields=id,slug,date,title,excerpt,_links,_embedded`);
-  const raw: RawPost[] = await res.json();
-  return { posts: raw.map(toPost), totalPages: Number(res.headers.get("X-WP-TotalPages") ?? 1) };
-}
 
 // Batches stay small so each response fits in Next's fetch cache (2MB) and is shared across the static build.
 const ALL_POSTS_BATCH = 20;
@@ -83,11 +85,19 @@ export const getAllPosts = cache(async () => {
   const fields = "_fields=id,slug,date,title,excerpt,content,_links,_embedded&_embed=wp:featuredmedia";
   const first = await wpFetch(`posts?per_page=${ALL_POSTS_BATCH}&page=1&${fields}`);
   const totalPages = Number(first.headers.get("X-WP-TotalPages") ?? 1);
-  const rest = await Promise.all(
-    Array.from({ length: totalPages - 1 }, (_, i) => wp<RawPost[]>(`posts?per_page=${ALL_POSTS_BATCH}&page=${i + 2}&${fields}`)),
-  );
-  return [(await first.json()) as RawPost[], ...rest].flat().map(toPost);
+  const batches: RawPost[][] = [await first.json()];
+  // One batch at a time to stay under the host's rate limit.
+  for (let page = 2; page <= totalPages; page++) {
+    batches.push(await wp<RawPost[]>(`posts?per_page=${ALL_POSTS_BATCH}&page=${page}&${fields}`));
+  }
+  return batches.flat().map(toPost);
 });
+
+/** A page of posts, sliced from the full list so listing pages make no extra requests. */
+export async function getPosts(perPage = 9, page = 1) {
+  const all = await getAllPosts();
+  return { posts: all.slice((page - 1) * perPage, page * perPage), totalPages: Math.max(1, Math.ceil(all.length / perPage)) };
+}
 
 export async function getPost(slug: string) {
   return (await getAllPosts()).find((p) => p.slug === slug) ?? null;
