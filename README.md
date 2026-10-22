@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Southside Wheely Wheelers: redesign
 
-## Getting Started
+A headless Next.js frontend for https://swwcycling.ie. The existing WordPress site stays the CMS: edit content there and it shows up here.
 
-First, run the development server:
+## Where the content comes from
+Everything is live; nothing is hard-coded.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Content | Source | Refresh |
+| --- | --- | --- |
+| Every page (`/club-spins`, `/trips-abroad`, `/gallery`, …) | WordPress pages API, Divi layout converted by `src/lib/divi.ts` | hourly rebuild |
+| Home page sections (welcome, offers, ride groups, trips, join) | Parsed from the Home, Club Spins, Trips Abroad and Join pages in `src/lib/site.ts` | hourly rebuild |
+| News and articles | WordPress posts API | hourly rebuild |
+| Photo galleries and trip cover photos | WordPress media API (Divi gallery IDs) | hourly rebuild |
+| Events (`/calendar`, home "Coming up") | The club's public Google Calendar (the one embedded on the WordPress calendar page) | hourly rebuild |
+| YouTube page | The channel's public YouTube RSS feed | hourly rebuild |
+| Nav menu, contact email, Facebook, map link, sponsors | Read from the pages above | hourly rebuild |
+
+The home page relies on a few conventions in WordPress: ride groups are headings named "<Colour> GROUP" on the Club Spins page, and trips are headings containing a year on the Trips Abroad page.
+
+## Run locally
+```sh
+npm run dev                  # development, http://localhost:3000
+npm run build && npx serve out   # preview the static build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy (GitHub Pages)
+The site is a static export (`out/`), built and deployed by `.github/workflows/deploy.yml`:
+- on every push to `main`
+- every hour, so new WordPress posts, pages, calendar events and videos appear without a code change
+- on demand from the repo's **Actions → Deploy to GitHub Pages → Run workflow**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To publish instantly when WordPress changes, send a `repository_dispatch` event of type `wordpress-updated` to the repo (for example from a WordPress webhook plugin, using a GitHub token with access to this repo only).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The workflow sets `NEXT_PUBLIC_BASE_PATH` to `/<repo-name>` for project sites; with a custom domain it is empty.
+Set `WORDPRESS_URL` in `.env.local` to point at a different WordPress install.

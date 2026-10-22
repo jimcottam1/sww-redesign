@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
+// Static export for GitHub Pages. A project site lives under /<repo>, so the
+// deploy workflow passes that prefix in; locally it is empty.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "export",
+  basePath,
+  trailingSlash: true,
+  images: { unoptimized: true },
 };
 
 export default nextConfig;
