@@ -5,6 +5,9 @@ import { getUpcomingEvents } from "@/lib/calendar";
 import { getSite } from "@/lib/site";
 import { formatDate, getPosts } from "@/lib/wordpress";
 
+// Poster colours handed out to trips in turn, with the text colour that reads on each.
+const TRIP_COLORS = [["var(--blue)", "#fff"], ["var(--red)", "#fff"], ["var(--green)", "var(--ink)"], ["var(--orange)", "var(--ink)"]];
+
 export default async function Home() {
   const site = await getSite();
   const [{ posts }, events] = await Promise.all([
@@ -25,18 +28,25 @@ export default async function Home() {
   return (
     <main>
       <section className="hero">
-        {site.hero && <img className="hero-img" src={site.hero} alt="Southside Wheely Wheelers riders out on a club spin" />}
-        <div className="hero-shade" />
-        <div className="wrap hero-inner">
-          <p className="eyebrow">Cycling club · Kilmallock, Co. Limerick</p>
-          <h1 className="hero-title">
-            Ride together.<br /><span>Stop for coffee.</span>
-          </h1>
-          {site.tagline && <p className="hero-lede">{site.tagline}</p>}
-          <div className="hero-ctas">
-            <Link href="/join-the-club" className="btn">Join the club</Link>
-            <Link href="#spins" className="btn btn-ghost">See Sunday spins</Link>
+        <span className="hero-word" aria-hidden>SWW</span>
+        <div className="wrap hero-grid">
+          <div>
+            <p className="eyebrow">Cycling club · Kilmallock, Co. Limerick</p>
+            <h1 className="hero-title">
+              <em>Ride</em> together.<br />Stop for coffee.
+            </h1>
+            {site.tagline && <p className="hero-lede">{site.tagline}</p>}
+            <div className="hero-ctas">
+              <Link href="/join-the-club" className="btn">Join the club</Link>
+              <Link href="#spins" className="btn btn-ghost">See Sunday spins</Link>
+            </div>
           </div>
+          {site.hero && (
+            <div className="hero-photo">
+              <img src={site.hero} alt="Southside Wheely Wheelers riders out on a club spin" />
+              <p className="sticker"><span>All abilities</span><strong>Welcome</strong></p>
+            </div>
+          )}
         </div>
         <dl className="wrap hero-stats">
           {site.spins.startTime && <div><dt>Every Sunday</dt><dd>{site.spins.startTime.replace(/am$/i, "")}</dd></div>}
@@ -73,7 +83,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section block-blue">
         <div className="wrap split-grid">
           {site.spinsPhoto && (
             <div className="split-photo">
@@ -87,7 +97,7 @@ export default async function Home() {
             <div className="offers">
               {site.offers.map((o, i) => (
                 <div key={o.title} className="offer">
-                  <span className="offer-num">0{i + 1}</span>
+                  <span className="offer-num">{i + 1}</span>
                   <div>
                     <h3>{o.title}</h3>
                     <p>{o.text}</p>
@@ -110,11 +120,11 @@ export default async function Home() {
           </div>
         </div>
         <div className="trip-rail">
-          {site.trips.list.map((t) => (
-            <Link key={t.year + t.place} href="/trips-abroad" className="trip">
+          {site.trips.list.map((t, i) => (
+            <Link key={t.year + t.place} href="/trips-abroad" className="trip" style={{ "--c": TRIP_COLORS[i % TRIP_COLORS.length][0], "--on": TRIP_COLORS[i % TRIP_COLORS.length][1] } as React.CSSProperties}>
               {t.image && <img className="trip-img" src={t.image.url} alt="" loading="lazy" />}
+              <p className="trip-year">{t.year}</p>
               <div className="trip-body">
-                <p className="trip-year">{t.year}</p>
                 <h3>{t.place}</h3>
                 <p>{t.text}</p>
               </div>
@@ -124,7 +134,7 @@ export default async function Home() {
       </section>
 
       {events.length > 0 && (
-        <section className="section">
+        <section className="section block-yellow">
           <div className="wrap">
             <div className="section-head row">
               <div>
@@ -164,11 +174,11 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="section join" id="join">
+      <section className="section join block-red" id="join">
         <div className="wrap join-grid">
           <div>
             <p className="eyebrow">New members welcome</p>
-            <h2 className="section-title">Come for a spin.</h2>
+            <h2 className="section-title join-title">Come for a spin.</h2>
             {site.newMembers.intro.map((p) => <p key={p} className="section-lede">{p}</p>)}
           </div>
           <div>
