@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Archivo, Inter, Space_Mono } from "next/font/google";
+import { Inter, Righteous, Shrikhand } from "next/font/google";
 import Link from "next/link";
+import { Stripes } from "@/components/Groovy";
 import { getSite } from "@/lib/site";
 import "./globals.css";
 
-const display = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-display" });
+const display = Shrikhand({ subsets: ["latin"], weight: "400", variable: "--font-display" });
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
-const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono" });
+const label = Righteous({ subsets: ["latin"], weight: "400", variable: "--font-label" });
 
 export const metadata: Metadata = {
   title: "Southside Wheely Wheelers · Cycling Club, Kilmallock",
@@ -19,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const links = [...site.nav.slice(0, 3), news, ...site.nav.slice(3)];
 
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${label.variable}`}>
       <body>
         <header className="nav">
           <Link href="/" className="nav-brand">
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </header>
         {children}
         <footer className="footer" id="contact">
+          <Stripes />
           <div className="wrap footer-grid">
             <div>
               <p className="eyebrow">Get in touch</p>

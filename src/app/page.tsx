@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Events } from "@/components/Events";
+import { SpinRing, Stripes } from "@/components/Groovy";
 import { localHref } from "@/components/Blocks";
 import { getUpcomingEvents } from "@/lib/calendar";
 import { getSite } from "@/lib/site";
 import { formatDate, getPosts } from "@/lib/wordpress";
 
-// Poster colours handed out to trips in turn, with the text colour that reads on each.
-const TRIP_COLORS = [["var(--blue)", "#fff"], ["var(--red)", "#fff"], ["var(--green)", "var(--ink)"], ["var(--orange)", "var(--ink)"]];
+// Groovy colours handed out to trips in turn, with the text colour that reads on each.
+const TRIP_COLORS = [["var(--orange)", "var(--ink)"], ["var(--purple)", "var(--cream)"], ["var(--pink)", "var(--ink)"], ["var(--teal)", "var(--ink)"]];
 
 export default async function Home() {
   const site = await getSite();
@@ -28,12 +29,12 @@ export default async function Home() {
   return (
     <main>
       <section className="hero">
-        <span className="hero-word" aria-hidden>SWW</span>
+        <div className="sunburst" aria-hidden />
         <div className="wrap hero-grid">
           <div>
             <p className="eyebrow">Cycling club · Kilmallock, Co. Limerick</p>
             <h1 className="hero-title">
-              <em>Ride</em> together.<br />Stop for coffee.
+              Ride together.<br /><span>Stop for coffee!</span>
             </h1>
             {site.tagline && <p className="hero-lede">{site.tagline}</p>}
             <div className="hero-ctas">
@@ -42,9 +43,10 @@ export default async function Home() {
             </div>
           </div>
           {site.hero && (
-            <div className="hero-photo">
+            <div className="hero-wheel">
+              <SpinRing text="Southside Wheely Wheelers ✿ Sunday spins ✿ Coffee stop ✿ " />
               <img src={site.hero} alt="Southside Wheely Wheelers riders out on a club spin" />
-              <p className="sticker"><span>All abilities</span><strong>Welcome</strong></p>
+              <p className="burst sticker"><span>All abilities</span><strong>Welcome!</strong></p>
             </div>
           )}
         </div>
@@ -54,6 +56,7 @@ export default async function Home() {
           {maxKm > 0 && <div><dt>Longest spins</dt><dd>{maxKm}<small>km</small></dd></div>}
           <div><dt>Trips abroad</dt><dd>{site.trips.list.length}</dd></div>
         </dl>
+        <Stripes />
       </section>
 
       <div className="ticker" aria-hidden>
@@ -83,7 +86,8 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section block-blue">
+      <section className="section block-purple">
+        <Stripes flip />
         <div className="wrap split-grid">
           {site.spinsPhoto && (
             <div className="split-photo">
@@ -110,6 +114,7 @@ export default async function Home() {
       </section>
 
       <section className="section trips" id="trips">
+        <Stripes />
         <div className="wrap">
           <div className="section-head row">
             <div>
@@ -134,7 +139,7 @@ export default async function Home() {
       </section>
 
       {events.length > 0 && (
-        <section className="section block-yellow">
+        <section className="section block-mustard">
           <div className="wrap">
             <div className="section-head row">
               <div>
@@ -174,7 +179,9 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="section join block-red" id="join">
+      <section className="section join block-orange" id="join">
+        <div className="sunburst" aria-hidden />
+        <Stripes flip />
         <div className="wrap join-grid">
           <div>
             <p className="eyebrow">New members welcome</p>
